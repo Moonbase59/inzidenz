@@ -8,7 +8,7 @@ Geschrieben in *Python3*, es sollte damit auf allen Systemen laufen, auf denen P
 
 Das Programm zeigt den aktuellen 7-Tage-Inzidenzwert farbcodiert an, basierend auf Geo-Koordinaten (latitude, longitude), wie man sie z.B. bei [OpenStreetMap](https://www.openstreetmap.org/search?query=52.52134162768218%2C13.41327381161729#map=19/52.52134/13.41327) oder [Google Maps](https://www.google.com/maps/place/52%C2%B031'16.8%22N+13%C2%B024'47.8%22E/@52.5213416,13.4110851,17z/data=!3m1!4b1!4m5!3m4!1s0x0:0x0!8m2!3d52.5213416!4d13.4132738) abfragen kann:
 
-> Bezirk Berlin Mitte, Berlin: <span style='background-color:rgba(255,0,255,0.5)'>104.7</span>
+![Terminal-Ausgabe](images/inzidenz.png)
 
 Die Daten werden direkt vom Robert-Koch-Institut (COVID-19 Datenhub) bezogen (Danke.)
 
