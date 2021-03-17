@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Covid-19 7-Tage-Inzidenz für Landkreise/kreisfreie Städte
+# bezogen vom Robert-Koch-Institut
+# gültig nur für Koordinaten innerhalb Deutschlands
+# MCH 2021-03-13
+
+__author__ = 'Matthias C. Hormann'
+__version__ = '1.0'
+
+import requests
+import argparse
+from colorama import Back, Style
+from datetime import datetime
+import textwrap
+#import json
+
+# Hier die Default-Koordinaten angeben, z.B. Ihren Standort zuhause.
+# Berlin, Alexanderplatz, Weltzeituhr
+lat = 52.52134162768218
+lon = 13.41327381161729
+
+# Ab hier nichts mehr ändern!
+
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    description="Covid-19 7-Tage-Inzidenz für Landkreise/kreisfreie Städte in Deutschland",
+    epilog = textwrap.dedent("""
+    Der Inzidenzwert ist farbcodiert (Ausgabeformate 'term' und 'html'):
+    Bis 35 {green}grün{normal}, über 35 {yellow}gelb{normal}, über 50 {red}rot{normal}, über 100 {magenta}magenta{normal}.
+
+    Daten vom Robert-Koch-Institut (COVID-19 Datenhub).
+    """.format(green=Back.GREEN, yellow=Back.YELLOW, red=Back.RED, magenta=Back.MAGENTA, normal=Style.RESET_ALL))
+)
+parser.add_argument("-V", "--version", action='version', version='%(prog)s {version}'.format(version=__version__))
+parser.add_argument("-f", "--format", nargs=1, default=['term'],
+    choices=['none', 'term', 'html', 'csv'],
+    help="set output format (default: term)"
+)
+parser.add_argument("-lat", "--latitude", nargs=1, type=float,
+    default=[lat],
+    help="set latitude (default: {})".format(lat)
+)
+parser.add_argument("-lon", "--longitude", nargs=1, type=float,
+    default=[lon],
+    help="set longitude (default: {})".format(lon)
+)
+parser.add_argument("-v", "--verbose", action='store_true',
+    default=False,
+    help="verbose output (default: False)"
+)
+
+args = parser.parse_args()
+
+#print("Format:", args.format)
+#print("Verbose:", args.verbose)
+#print("Coordinates:", args.latitude, args.longitude)
+
+lat = args.latitude[0]
+lon = args.longitude[0]
+
+uri = "https://services7.arcgis.com/mOBPykOjAyBO2ZKk/arcgis/rest/services/RKI_Landkreisdaten/FeatureServer/0/query?where=1%3D1&outFields=BL,county,GEN,BEZ,cases7_per_100k,last_update&geometry={lon}%2C{lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelWithin&returnGeometry=false&outSR=4326&f=json".format(lat=lat, lon=lon)
+
+try:
+    r = requests.get(uri,timeout=3)
+    r.raise_for_status()
+except requests.exceptions.HTTPError as errh:
+    raise SystemExit(errh)
+#    print ("Http Error:",errh)
+except requests.exceptions.ConnectionError as errc:
+    raise SystemExit(errc)
+#    print ("Error Connecting:",errc)
+except requests.exceptions.Timeout as errt:
+    raise SystemExit(errt)
+#    print ("Timeout Error:",errt)
+except requests.exceptions.RequestException as err:
+    raise SystemExit(err)
+#    print ("OOps: Something Else",err)
+
+#print(uri)
+#print(json.dumps(r.json(), indent=4, sort_keys=True))
+
+# Error occurred
+if 'error' in r.json():
+    raise SystemExit(r.json()['error']['message'])
+
+# RKI returns empty 'features' list for unsupported locations
+if not r.json()['features']:
+    raise SystemExit("Unsupported location (not within Germany?)")
+
+name = r.json()['features'][0]['attributes']['GEN']
+bezeichnung = r.json()['features'][0]['attributes']['BEZ']
+bundesland = r.json()['features'][0]['attributes']['BL']
+landkreis = r.json()['features'][0]['attributes']['county']
+inzidenz = r.json()['features'][0]['attributes']['cases7_per_100k']
+inzidenz_rounded = round(inzidenz,1)
+last_update = r.json()['features'][0]['attributes']['last_update']
+
+if args.format == ['term']:
+    if inzidenz_rounded > 100.0:
+        inzidenz_text = "{}{}{}".format(Back.MAGENTA, inzidenz_rounded, Style.RESET_ALL)
+    elif inzidenz_rounded > 50.0:
+        inzidenz_text = "{}{}{}".format(Back.RED, inzidenz_rounded, Style.RESET_ALL)
+    elif inzidenz_rounded > 35.0:
+        inzidenz_text = "{}{}{}".format(Back.YELLOW, inzidenz_rounded, Style.RESET_ALL)
+    else:
+        inzidenz_text = "{}{}{}".format(Back.GREEN, inzidenz_rounded, Style.RESET_ALL)
+elif args.format == ['html']:
+    if inzidenz_rounded > 100.0:
+        inzidenz_text = "{}{}{}".format("<span style='background-color:rgba(255,0,255,0.5)'>", inzidenz_rounded, "</span>")
+    elif inzidenz_rounded > 50.0:
+        inzidenz_text = "{}{}{}".format("<span style='background-color:rgba(255,0,0,0.5)'>", inzidenz_rounded, "</span>")
+    elif inzidenz_rounded > 35.0:
+        inzidenz_text = "{}{}{}".format("<span style='background-color:rgba(255,255,0,0.5)'>", inzidenz_rounded, "</span>")
+    else:
+        inzidenz_text = "{}{}{}".format("<span style='background-color:rgba(0,255,0,0.5)'>", inzidenz_rounded, "</span>")
+elif args.format == ['csv']:
+    if args.verbose:
+        print("Bundesland,Bezeichnung,Name,Inzidenz,Datenstand")
+    csv_date = datetime.strptime(last_update, '%d.%m.%Y, %H:%M Uhr').strftime("%Y-%m-%d %H:%M:%S")
+    print('"{bundesland}","{bezeichnung}","{name}",{inzidenz},"{last_update}"'.format(bundesland=bundesland, bezeichnung=bezeichnung, name=name, inzidenz=inzidenz, last_update=csv_date))
+    exit(0)
+else:
+    inzidenz_text = str(inzidenz_rounded)
+
+if args.verbose:
+    print("7-Tage-Inzidenz {bezeichnung} {name}, {bundesland}: {inzidenz} (Datenstand: {last_update})".format(bezeichnung=bezeichnung, name=name, bundesland=bundesland, inzidenz=inzidenz_text, last_update=last_update))
+else:
+    print("{bezeichnung} {name}, {bundesland}: {inzidenz}".format(bezeichnung=bezeichnung, name=name, bundesland=bundesland, inzidenz=inzidenz_text))
