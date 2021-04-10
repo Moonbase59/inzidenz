@@ -32,6 +32,8 @@ für das _requests_-Modul.
 
 Die Datei `inzidenz` einfach an eine geeignete Stelle kopieren (z.B. `~/bin` oder `/usr/local/bin`) und ausführbar machen (`chmod +x inzidenz`).
 
+Zur Verwendung auf Windows-Systemen wird empfohlen, die Datei in `inzidenz.py` umzubenennen. Die Beispiele dann entsprechend mit `inzidenz.py` statt `inzidenz` ausführen.
+
 Alle anderen Dateien werden zur Ausführung _nicht benötigt_.
 
 ### Änderung der Standard-Koordinaten

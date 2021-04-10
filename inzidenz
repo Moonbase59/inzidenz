@@ -4,13 +4,15 @@
 # Covid-19 7-Tage-Inzidenz für Landkreise/kreisfreie Städte
 # bezogen vom Robert-Koch-Institut
 # gültig nur für Koordinaten innerhalb Deutschlands
-# MCH 2021-03-13
+# MCH 2021-03-13 v1.0
+# MCH 2021-04-11 v1.0.1 - Anpassung zur farbigen Ausgabe auf Windows-Terminal
 
 __author__ = 'Matthias C. Hormann'
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 import requests
 import argparse
+import colorama
 from colorama import Back, Style
 from datetime import datetime
 import textwrap
@@ -22,6 +24,8 @@ lat = 52.52134162768218
 lon = 13.41327381161729
 
 # Ab hier nichts mehr ändern!
+
+colorama.init()
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
