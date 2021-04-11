@@ -85,7 +85,7 @@ Daten vom Robert-Koch-Institut (COVID-19 Datenhub).
 
 `inzidenz.py` unter Windows 7 (und neuer):
 
-![inzidenz unter Linux](images/inzidenz-help-windows7.png)
+![inzidenz.py unter Windows](images/inzidenz-help-windows7.png)
 
 Abfrage der Geo-Koordinaten bei Google Maps:
 
