@@ -79,6 +79,14 @@ Daten vom Robert-Koch-Institut (COVID-19 Datenhub).
 
 ## Beispiele
 
+`inzidenz` unter Linux:
+
+![inzidenz unter Linux](images/inzidenz-help.png)
+
+`inzidenz.py` unter Windows 7 (und neuer):
+
+![inzidenz unter Linux](images/inzidenz-help-windows7.png)
+
 Abfrage der Geo-Koordinaten bei Google Maps:
 
 ![Google Maps Koordinaten-Abfrage](images/google-maps-location.png)
