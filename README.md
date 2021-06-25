@@ -18,7 +18,7 @@ Um eine leichte Weiterverwendung in anderen Programmen zu ermöglichen, kann in 
 
 **Python3** muss installiert sein (getestet ab Version 3.4.3).
 
-Das Programm benötigt die Python-Module _requests_, _argparse_, _colorama_, _datetime_ und _textwrap_, die auf den meisten Systemen schon installiert sein dürften, aber ggf. leicht nachzuinstallieren sind, z.B. mit
+Das Programm benötigt die Python-Module _requests_, _argparse_, _colorama_, _datetime_, _json_ und _textwrap_, die auf den meisten Systemen schon installiert sein dürften, aber ggf. leicht nachzuinstallieren sind, z.B. mit
 
 ```bash
 pip3 install requests
@@ -63,12 +63,12 @@ Covid-19 7-Tage-Inzidenz für Landkreise/kreisfreie Städte in Deutschland
 optional arguments:
   -h, --help            show this help message and exit
   -V, --version         show program's version number and exit
-  -f {none,term,html,csv}, --format {none,term,html,csv}
+  -f {none,term,html,csv,json}, --format {none,term,html,csv,json}
                         set output format (default: term)
   -lat LATITUDE, --latitude LATITUDE
-                        set latitude (default: 48.238907)
+                        set latitude (default: 52.52134162768218)
   -lon LONGITUDE, --longitude LONGITUDE
-                        set longitude (default: 10.375929)
+                        set longitude (default: 13.41327381161729)
   -v, --verbose         verbose output (default: False)
 
 Der Inzidenzwert ist farbcodiert (Ausgabeformate 'term' und 'html'):
@@ -94,29 +94,68 @@ Abfrage der Geo-Koordinaten bei Google Maps:
 Rechtsklick auf dem gewünschten Ort (hier München Flughafen): Es werden die Koordinaten angezeigt. Ein normaler Klick auf die Koordinaten kopiert sie dann in die Zwischenablage.
 
 7-Tage-Inzidenzwert für den vorgegebenen Standort abfragen (Kurzform):
+
 ```bash
 inzidenz
 ```
 
 7-Tage-Inzidenzwert für den vorgegebenen Standort abfragen (lange Form):
+
 ```bash
 inzidenz -v
 ```
 
 7-Tage-Inzidenzwert für einen anderen Standort abfragen (München Flughafen):
+
 ```bash
 inzidenz -lat 48.357949 -lon 11.783045
 ```
 
 CSV-Datei `test.csv` mit Kopfzeile anlegen:
+
 ```bash
 inzidenz -f csv -v > test.csv
 ```
 
 Neue Daten an CSV-Datei `test.csv` anhängen (ohne Kopfzeile):
+
 ```bash
 inzidenz -f csv >> test.csv
 ```
+
+Ausgabe als JSON (UTF-8), z.B. zur Verwendung mit _[Home Assistant](https://www.home-assistant.io/)_:
+
+```bash
+inzidenz -f json
+```
+
+### Einbindung in Home Assistant
+
+In Home Assistant kann dieses Script z.B. so eingebunden werden (`configuration.yaml`):
+
+```yaml
+automation:
+
+  # Covid-19 7-Tage-Inzidenz
+  - platform: command_line
+    name: "Covid-19 7-Tage-Inzidenz"
+    # HASSIO: "python3 /config/scripts/inzidenz -f json"
+    command: "python3 /home/homeassistant/.homeassistant/scripts/inzidenz -f json"
+    json_attributes:
+    - inzidenz
+    - bezeichnung
+    - name
+    - bundesland
+    - fullname
+    - last_update
+    - lat
+    - lon
+    value_template: "{{ value_json.inzidenz_rounded }}"
+    scan_interval: 3600
+    command_timeout: 15
+```
+
+Dazu müssen allerdings auf dem Home-Assistant-Server alle benötigten Python3-Module installiert sein. (Bspw. mittels `python3 -m pip install colorama` machbar.)
 
 ## Bleiben Sie gesund!
 
@@ -125,3 +164,7 @@ Ich hoffe, dieses kleine Programm macht es dem einen oder der anderen leichter, 
 Ich persönlich benutze das Skript, um die Daten automatisch in meine Obsidian-Tagesnotiz einfügen zu lassen:
 
 ![Obsidian Tagesnotiz](images/obsidian-daily-note.png)
+
+Und natürlich in Home Assistant:
+
+![Home Assistant Sensor](images/homeassistant-sensor.png)

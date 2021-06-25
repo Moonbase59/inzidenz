@@ -6,9 +6,10 @@
 # gültig nur für Koordinaten innerhalb Deutschlands
 # MCH 2021-03-13 v1.0
 # MCH 2021-04-11 v1.0.1 - Anpassung zur farbigen Ausgabe auf Windows-Terminal
+# MCH 2021-06-25 v1.1 - Zusätzlich Ausgabe als JSON möglich (-f json)
 
 __author__ = 'Matthias C. Hormann'
-__version__ = '1.0.1'
+__version__ = '1.1'
 
 import requests
 import argparse
@@ -16,7 +17,7 @@ import colorama
 from colorama import Back, Style
 from datetime import datetime
 import textwrap
-#import json
+import json
 
 # Hier die Default-Koordinaten angeben, z.B. Ihren Standort zuhause.
 # Berlin, Alexanderplatz, Weltzeituhr
@@ -39,7 +40,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("-V", "--version", action='version', version='%(prog)s {version}'.format(version=__version__))
 parser.add_argument("-f", "--format", nargs=1, default=['term'],
-    choices=['none', 'term', 'html', 'csv'],
+    choices=['none', 'term', 'html', 'csv', 'json'],
     help="set output format (default: term)"
 )
 parser.add_argument("-lat", "--latitude", nargs=1, type=float,
@@ -124,6 +125,19 @@ elif args.format == ['csv']:
         print("Bundesland,Bezeichnung,Name,Inzidenz,Datenstand")
     csv_date = datetime.strptime(last_update, '%d.%m.%Y, %H:%M Uhr').strftime("%Y-%m-%d %H:%M:%S")
     print('"{bundesland}","{bezeichnung}","{name}",{inzidenz},"{last_update}"'.format(bundesland=bundesland, bezeichnung=bezeichnung, name=name, inzidenz=inzidenz, last_update=csv_date))
+    exit(0)
+elif args.format == ['json']:
+    data = {}
+    data['inzidenz'] = inzidenz
+    data['inzidenz_rounded'] = inzidenz_rounded
+    data['fullname'] = "{bezeichnung} {name}, {bundesland}".format(bezeichnung=bezeichnung, name=name, bundesland=bundesland)
+    data['bezeichnung'] = bezeichnung
+    data['name'] = name
+    data['bundesland'] = bundesland
+    data['lon'] = lon
+    data['lat'] = lat
+    data['last_update'] = datetime.strptime(last_update, '%d.%m.%Y, %H:%M Uhr').replace(microsecond=0).isoformat()
+    print(json.dumps(data, ensure_ascii=False, sort_keys=True))
     exit(0)
 else:
     inzidenz_text = str(inzidenz_rounded)
